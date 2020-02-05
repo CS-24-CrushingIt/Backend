@@ -32,7 +32,6 @@ if current['room_id'] not in graph:
 current
 
 def bfs(starting_room, destination):
-  traps = [302,422,426,457]
   queue = Queue()
   queue.enqueue([starting_room])
   visited = set()
@@ -44,12 +43,13 @@ def bfs(starting_room, destination):
         return path
       else:
         for direction in graph[room_id][0]:
-          # if graph[room_id][0][direction] not in traps:
-          new_path = path.copy()
-          new_path.append(graph[room_id][0][direction])
-          queue.enqueue(new_path)
+          if graph[room_id][0][direction] != "?":
+            new_path = path.copy()
+            new_path.append(graph[room_id][0][direction])
+            queue.enqueue(new_path)
       visited.add(room_id)
   return []
+# bfs(current['room_id'], 492)
 
 # Treasure
 def take_item(treasure):
@@ -111,23 +111,27 @@ def movement(direction, next_room_id=None):
       new_room[direction] = "?"
     new_room[inverse_directions[next_move]] = current['room_id']
     graph[result['room_id']] = [new_room, result]
-  print(graph)
+  print(result)
+  with open("data.json", "w") as write_file:
+    json.dump(graph, write_file)
   return result
 
-bfs(current['room_id'], "?")
+# bfs(current['room_id'], "?")
 
 inverse_directions = {"n": "s", "s": "n", "e": "w", "w": "e"}
 # prev_move = None
 while True:
     current_exits = graph[current['room_id']][0]
     # if status_check()['encumbrance'] > 0:
-    #   # If inventory getting too full, go sell at shop
-    #   target = bfs(current['room_id'], 1)[1]
-    #   print('Heading to shop..')
-    #   for direction, room_id in current_exits.items():
-    #     if room_id == target:
-    #       next_move = direction
-    #       break
+      # If inventory getting too full, go sell at shop
+    print(bfs(current['room_id'], 1))
+    target = bfs(current['room_id'], 1)
+    print('Heading to shop..')
+    for direction, room_id in current_exits.items():
+      if room_id == target:
+        next_move = direction
+        print("You are at the shop")
+        break
     # if status_check()['gold'] >= 1000:
     #   # Change name to get clue for Lambda coin
     #   target = bfs(current['room_id'], 55)[1]
@@ -159,32 +163,56 @@ while True:
     else:
         next_move = random.choice(directions)
 
-    print(f'Next room: {current_exits[next_move]}')
+    # print(f'Next room: {current_exits[next_move]}')
+    print(f'Room[{current["room_id"]}] to Room[{current_exits[next_move]}]')
     if current_exits[next_move] == "?":
-        print(f"Traveling to the unknown.. ({len(graph)}/500)")
-        end_room = movement(next_move)
+      print(f"Traveling to the unknown.. ({len(graph)}/500)")
+      end_room = movement(next_move)
     else:
-        # Use "Wise Explorer" buff
-        print(f'Obtaining "Wise Explorer" buff..')
-        end_room = movement(next_move, current_exits[next_move])
-
-    print("end_room: ",end_room)
-    if len(end_room['items']) > 0:
-        for item in end_room['items']:
-            print(f'{item} found in {end_room["room_id"]}')
-        if 'treasure' not in item:
-            time.sleep(end_room['cooldown'])
-            end_room = take_item(item)
-    # if 'Shrine' in end_room['title']:
-    #   time.sleep(end_room['cooldown'])
-    #   pray()
-    # elif end_room['title'] == 'Shop':
-    #   time.sleep(end_room['cooldown'])
-    #   items = status_check()['inventory']
-    #   for item in items:
-    #     if 'treasure' in item:
+      # Use "Wise Explorer" buff
+      end_room = movement(next_move, current_exits[next_move])
+    print(f"CD: {end_room['cooldown']}, {end_room['messages']}")
+    # if len(end_room['items']) > 0:
+    #   for item in end_room['items']:
+    #     if 'treasure' not in item:
+    #       print(f'{item} found in {end_room["room_id"]}')
     #       time.sleep(end_room['cooldown'])
-    #       end_room = sell_item(item)
+    #       end_room = take_item(item)
+    if end_room['title'] == 'Shop':
+      time.sleep(end_room['cooldown'])
+      items = status_check()['inventory']
+      for item in items:
+        if 'treasure' in item:
+          time.sleep(end_room['cooldown'])
+          end_room = sell_item(item)
     prev_move = next_move
     current = end_room
     time.sleep(current['cooldown'])
+    # if current_exits[next_move] == "?":
+    #     print(f"TEST-- Traveling to the unknown.. ({len(graph)}/500)")
+    #     end_room = movement(next_move)
+    # else:
+    #     # Use "Wise Explorer" buff
+    #     print(f'Obtaining "Wise Explorer" buff..')
+    #     end_room = movement(next_move, current_exits[next_move])
+
+    # print("end_room: ",end_room)
+    # if len(end_room['items']) > 0:
+    #     for item in end_room['items']:
+    #         print(f'{item} found in {end_room["room_id"]}')
+    #     if 'treasure' not in item:
+    #         time.sleep(end_room['cooldown'])
+    #         end_room = take_item(item)
+    # # if 'Shrine' in end_room['title']:
+    # #   time.sleep(end_room['cooldown'])
+    # #   pray()
+    # # elif end_room['title'] == 'Shop':
+    # #   time.sleep(end_room['cooldown'])
+    # #   items = status_check()['inventory']
+    # #   for item in items:
+    # #     if 'treasure' in item:
+    # #       time.sleep(end_room['cooldown'])
+    # #       end_room = sell_item(item)
+    # prev_move = next_move
+    # current = end_room
+    # time.sleep(current['cooldown'])
