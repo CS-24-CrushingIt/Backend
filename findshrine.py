@@ -83,6 +83,7 @@ inverse_directions = {"n": "s", "s": "n", "e": "w", "w": "e"}
 # prev_move = None
 while True:
   current_exits = graph[current['room_id']][0]
+  print(current_exits)
   # directions = []
   # for direction, room_id in current_exits.items():
   #   # If adjacent room_id not visited yet, add that direction
@@ -90,7 +91,7 @@ while True:
   #     directions.append(direction)
   # if len(directions) == 0:
     # print('All adjacent rooms visited..')
-  targets = bfs(current['room_id'], 22)[1:]
+  targets = bfs(current['room_id'], 202)[1:]
   print("targets*************************************", targets)
   # print("current exits",current_exits.items())
   for direction, room_id in current_exits.items():

@@ -4,9 +4,11 @@ import random
 import time
 from graph import graph as graph
 # from decouple import config
+
 # SECRET_KEY = config('SECRET_KEY')
 token = "8f8f7f8962c63020496c4d1833059b8555b20305"
 # graph = 
+
 # 59,60
 # n + 0 1
 # s - 0,1
@@ -24,14 +26,17 @@ class Queue:
             return None
     def size(self):
         return len(self.queue)
+
 url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/init/'
 current = requests.get(url, headers={'Authorization': f'Token {token}'}).json()
+
 if current['room_id'] not in graph:
   new_room = {}
   for direction in current['exits']:
       new_room[direction] = "?"
   graph[current['room_id']] = [new_room, current]
 # current
+
 def bfs(starting_room, destination):
   queue = Queue()
   queue.enqueue([starting_room])
@@ -49,8 +54,10 @@ def bfs(starting_room, destination):
             new_path.append(graph[room_id][0][direction])
             queue.enqueue(new_path)
       visited.add(room_id)
+  print("you are here")
   return []
 # bfs(current['room_id'], 492)
+
 # Treasure
 def take_item(treasure):
   url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/take/'
@@ -64,6 +71,7 @@ def take_item(treasure):
   else:
     print(f'Taking {treasure}!')
   return result
+
 # Selling Treasure
 def sell_item(treasure):
   url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/'
@@ -74,6 +82,7 @@ def sell_item(treasure):
   time.sleep(current['cooldown'])
   print(f'Selling {treasure} to shop.\n{result}')
   return result
+
 def status_check():
   url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/status/'
   result = requests.post(url, headers={'Content-Type':'application/json',
@@ -81,19 +90,32 @@ def status_check():
   print(result.json())
   time.sleep(current['cooldown'])
   return result.json()
+# print("waiting for cooldown")
+# time.sleep(current['cooldown'])
+# print(status_check()['encumbrance'])
+# time.sleep(current['cooldown'])
 # status_check()
+
 def movement(direction, next_room_id=None):
+  # Move With Flying
   if graph[current['room_id']][1]['terrain'] == 'CAVE':
     url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/move/'
-  else:
-    url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/'
+  # else:
+    # url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/fly/'
   if next_room_id is not None:
     data = f'{{"direction":"{direction}","next_room_id": "{next_room_id}"}}'
     if graph[next_room_id][1]['terrain'] == 'CAVE':
       url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/move/'
   else:
     data = f'{{"direction":"{direction}"}}'
-  
+  # Walking
+  # url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/move/'
+  # if next_room_id is not None:
+  #   time.sleep(current['cooldown'])
+  #   data = f'{{"direction":"{direction}","next_room_id": "{next_room_id}"}}'
+  # else:
+  #   time.sleep(current['cooldown'])
+  #   data = f'{{"direction":"{direction}"}}'
   result = requests.post(url, data=data,
                          headers={'Content-Type':'application/json',
                                   'Authorization': f'Token {token}'}).json()
@@ -111,7 +133,9 @@ def movement(direction, next_room_id=None):
   graph[result['room_id']][0][inverse_directions[direction]] = current['room_id']
   print(result)
   return result
+
 # bfs(current['room_id'], "?")
+
 inverse_directions = {"n": "s", "s": "n", "e": "w", "w": "e"}
 # prev_move = None
 while True:
@@ -128,9 +152,17 @@ while True:
     #     break
     # if status_check()['gold'] >= 1000:
     #   # Change name to get clue for Lambda coin
-    # Wishing well = 55
-    target = bfs(current['room_id'], 442)[1]
-    print('Heading to the Wishing Well..')
+    # if current["room_id"] == bfs(current['room_id']:
+    #   print("You have arrived at your destination")
+    #   break
+  # wishing well -- 55
+    print(current)
+    time.sleep(current['room_id'])
+    target = bfs(current['room_id'], 55)[1]
+    # print(current["room_id"])
+    # print("target", target)
+    print('Heading to the Mine..')
+    # print("curr",current_exits.items())
     for direction, room_id in current_exits.items():
       if room_id == target:
         next_move = direction
@@ -157,14 +189,19 @@ while True:
     #         next_move = random.choice(directions)
     # else:
     #     next_move = random.choice(directions)
+
     # print(f'Next room: {current_exits[next_move]}')
     print(f'Room[{current["room_id"]}] to Room[{current_exits[next_move]}]')
+    # if "tiny treasure" or "small treasure" in current['items']:
+    #   print("Found Treasure!")
+    #   print("Taking it..")
     if current_exits[next_move] == "?":
       print(f"Traveling to the unknown.. ({len(graph)}/500)")
       end_room = movement(next_move)
     else:
       # Use "Wise Explorer" buff
       time.sleep(current['cooldown'])
+
       end_room = movement(next_move, current_exits[next_move])
     print(f"CD: {end_room['cooldown']}, {end_room['messages']}")
     # if len(end_room['items']) > 0:
@@ -173,13 +210,13 @@ while True:
     #       print(f'{item} found in {end_room["room_id"]}')
     #       time.sleep(end_room['cooldown'])
     #       end_room = take_item(item)
-    if end_room['title'] == 'Shop':
-      time.sleep(end_room['cooldown'])
-      items = status_check()['inventory']
-      for item in items:
-        if 'treasure' in item:
-          time.sleep(end_room['cooldown'])
-          end_room = sell_item(item)
+    # if end_room['title'] == 'Shop':
+    #   time.sleep(end_room['cooldown'])
+    #   items = status_check()['inventory']
+    #   for item in items:
+    #     if 'treasure' in item:
+    #       time.sleep(end_room['cooldown'])
+    #       end_room = sell_item(item)
     prev_move = next_move
     current = end_room
     time.sleep(current['cooldown'])
@@ -190,6 +227,7 @@ while True:
     #     # Use "Wise Explorer" buff
     #     print(f'Obtaining "Wise Explorer" buff..')
     #     end_room = movement(next_move, current_exits[next_move])
+
     # print("end_room: ",end_room)
     # if len(end_room['items']) > 0:
     #     for item in end_room['items']:
